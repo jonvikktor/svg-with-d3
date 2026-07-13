@@ -84,8 +84,6 @@
       weddingCircles
         .attr('cx', (d, i) => (i + 0.5) * 200)
         .attr('cy', 100)
-        // each person's wedding cost is expressed as a share of Bezos's wealth,
-        // so all three circles are drawn on the same scale for a fair comparison
         .attr('r', d => scaleRadius(d.share * bezosWealth));
 
       nameLabels
