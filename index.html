@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+  <head>
+
+    <!-- some basic stuff  -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SVG with D3</title>
+
+    <!-- 
+      add your stylesheet 
+      base.css loads the templated css that should not be changed
+      you can tweak your own css in custom.css and it will override base.css
+      WARNING: the order of the stylesheets matters
+    -->
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="custom.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+
+    <!-- Step 2: add your d3 script below -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
+  </head>
+  <body>
+    <h1>How much does <span class="script">&ldquo;I do&rdquo;</span> cost?</h1>
+    <p>Comparing
+      <span style="font-weight: bold; color: white; background: #c0392b; padding: 1px 5px; border-radius: 3px;">wedding costs</span>
+      to the <span style="font-weight: bold; color: white; background: grey; padding: 1px 5px; border-radius: 3px;">wealth</span> of Taylor Swift, Jeff Bezos, and the average American.</p>
+    <div id="my-svg-chart"></div>
+
+    <!-- your JS code that uses d3 to manipulate data -->
+    <script type="module">
+
+      // Step 3. add data variables (loaded from data/wedding-data.csv instead of hardcoding, per the "extras" challenge)
+      const data = await d3.csv('data/wedding-data.csv', d3.autoType);
+      const bezosWealth = data.find(d => d.name === 'bezos').wealth;
+
+      // Step 4. transform data into usable scales
+      // let's assume we want the max radius of the circles to be 100
+      const scaleRadius = d3.scaleSqrt()
+        .domain([0, bezosWealth])
+        .range([0, 100]);
+
+      // Step 5. create an SVG container inside #my-svg-chart using d3.select().append()
+      const myChart = d3
+        .select('#my-svg-chart')
+        .append('svg')
+        .attr('width', 640)
+        .attr('height', 280);
+
+      // Step 6. create SVG shapes binded with data, using d3.selectAll().data().join()
+      const baseCircles = myChart
+        .selectAll('circle.base')
+        .data(data)
+        .join('circle')
+        .attr('class', 'base');
+
+      const weddingCircles = myChart
+        .selectAll('circle.wedding')
+        .data(data)
+        .join('circle')
+        .attr('class', 'wedding');
+
+      const nameLabels = myChart
+        .selectAll('text.name')
+        .data(data)
+        .join('text')
+        .attr('class', 'name');
+
+      const valueLabels = myChart
+        .selectAll('text.value')
+        .data(data)
+        .join('text')
+        .attr('class', 'value');
+
+      // Step 7. tweak the attributes of the SVG shapes to position them at the right places
+      baseCircles
+        .attr('cx', (d, i) => (i + 0.5) * 200)
+        .attr('cy', 100)
+        .attr('r', 100);
+
+      weddingCircles
+        .attr('cx', (d, i) => (i + 0.5) * 200)
+        .attr('cy', 100)
+        // each person's wedding cost is expressed as a share of Bezos's wealth,
+        // so all three circles are drawn on the same scale for a fair comparison
+        .attr('r', d => scaleRadius(d.share * bezosWealth));
+
+      nameLabels
+        .attr('x', (d, i) => (i + 0.5) * 200)
+        .attr('y', 225)
+        .attr('text-anchor', 'middle')
+        .text(d => d.name === 'american' ? 'Average American' : d.name === 'swift' ? 'Taylor Swift' : 'Jeff Bezos');
+
+      valueLabels
+        .attr('x', (d, i) => (i + 0.5) * 200)
+        .attr('y', 245)
+        .attr('text-anchor', 'middle')
+        .text(d => `$${d.wedding}M wedding`);
+
+      // Step 8. color the SVG shapes using style attributes
+      baseCircles.style('fill', '#ccc');
+      weddingCircles.style('fill', '#c0392b');
+      valueLabels.style('fill', '#666').style('font-size', '0.85em');
+
+    </script>
+
+  </body>
+</html>
